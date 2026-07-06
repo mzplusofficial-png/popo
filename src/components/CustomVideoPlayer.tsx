@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Loader2, Sparkles } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Loader2, Info, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import Player from "@vimeo/player";
 
 interface CustomVideoPlayerProps {
   onPlayStateChange?: (playing: boolean) => void;
@@ -12,17 +13,20 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
   onEnded,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<Player | null>(null);
 
+  // Player state
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(240); // default fallback to 4 mins (240s)
   const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [isBuffering, setIsBuffering] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [hasUnmuteNotice, setHasUnmuteNotice] = useState(true);
 
   // Auto-hide controls timer
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -40,50 +44,145 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     }, 2500);
   };
 
-  // Toggle play/pause
-  const togglePlay = () => {
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
+  // Safe wrapper for player method calls
+  const safePlayerCall = <T,>(action: (player: Player) => Promise<T>): Promise<T | null> => {
+    if (!playerRef.current || !iframeRef.current || !document.body.contains(iframeRef.current)) {
+      return Promise.resolve(null);
+    }
+    return action(playerRef.current).catch((err) => {
+      console.warn("Safe Vimeo player call caught error (expected during transitions/unmount):", err);
+      return null;
+    });
+  };
+
+  // Initialize Vimeo Player
+  useEffect(() => {
+    if (!iframeRef.current) return;
+
+    // Prevent double-initialization on same iframe
+    if (playerRef.current) return;
+
+    setIsBuffering(true);
+
+    const player = new Player(iframeRef.current);
+    playerRef.current = player;
+
+    // SDK Event Listeners
+    player.on("play", () => {
+      setIsPlaying(true);
+      onPlayStateChange?.(true);
+      resetControlsTimeout();
+    });
+
+    player.on("pause", () => {
       setIsPlaying(false);
       onPlayStateChange?.(false);
-      setControlsVisible(true); // Always show controls when paused
-    } else {
-      videoRef.current.play().then(() => {
-        setIsPlaying(true);
-        onPlayStateChange?.(true);
-        resetControlsTimeout();
-      }).catch((err) => {
-        console.error("Playback failed:", err?.message || err);
+      setControlsVisible(true);
+    });
+
+    player.on("ended", () => {
+      setIsPlaying(false);
+      onPlayStateChange?.(false);
+      onEnded?.();
+    });
+
+    player.on("timeupdate", (data) => {
+      setCurrentTime(data.seconds);
+      if (data.duration) {
+        setDuration(data.duration);
+      }
+    });
+
+    player.on("loaded", () => {
+      setIsBuffering(false);
+      player.getDuration().then((d) => {
+        if (d) setDuration(d);
+      }).catch((e) => {
+        console.warn("Error getting duration:", e);
       });
-    }
+    });
+
+    player.on("bufferstart", () => {
+      setIsBuffering(true);
+    });
+
+    player.on("bufferend", () => {
+      setIsBuffering(false);
+    });
+
+    player.on("error", (err) => {
+      console.error("Vimeo Player Event Error:", err);
+      // Suppress full-screen error overlays for harmless warnings
+      if (err && err.name !== "UnknownError") {
+        setHasError(true);
+      }
+      setIsBuffering(false);
+    });
+
+    // Handle initial autoplay attempt
+    player.play().then(() => {
+      setIsPlaying(true);
+      onPlayStateChange?.(true);
+    }).catch((err) => {
+      console.warn("Muted autoplay restriction or block:", err);
+      // Keep unmute notice visible
+      setHasUnmuteNotice(true);
+    });
+
+    return () => {
+      const activePlayer = playerRef.current;
+      playerRef.current = null;
+
+      if (activePlayer) {
+        try {
+          activePlayer.off("play");
+          activePlayer.off("pause");
+          activePlayer.off("ended");
+          activePlayer.off("timeupdate");
+          activePlayer.off("loaded");
+          activePlayer.off("bufferstart");
+          activePlayer.off("bufferend");
+          activePlayer.off("error");
+        } catch (e) {
+          console.warn("Error cleaning up Vimeo event listeners:", e);
+        }
+      }
+    };
+  }, []);
+
+  // Toggle play/pause
+  const togglePlay = () => {
+    safePlayerCall((p) => p.getPaused()).then((paused) => {
+      if (paused === null) return;
+      if (paused) {
+        safePlayerCall((p) => p.play()).then((res) => {
+          if (res === null) return;
+          setIsPlaying(true);
+          onPlayStateChange?.(true);
+          resetControlsTimeout();
+        });
+      } else {
+        safePlayerCall((p) => p.pause()).then((res) => {
+          if (res === null) return;
+          setIsPlaying(false);
+          onPlayStateChange?.(false);
+          setControlsVisible(true);
+        });
+      }
+    });
   };
 
   // Handle container clicks/taps
   const handleContainerClick = () => {
     if (isPlaying) {
       if (controlsVisible) {
-        // If playing and controls are visible, tap to pause
         togglePlay();
       } else {
-        // If playing and controls are hidden, tap to show controls
         resetControlsTimeout();
       }
     } else {
-      // If paused, tap to play
       togglePlay();
     }
-  };
-
-  // Handle video element play/pause events directly
-  const handlePlayEvent = () => {
-    setIsPlaying(true);
-    onPlayStateChange?.(true);
-  };
-
-  const handlePauseEvent = () => {
-    setIsPlaying(false);
-    onPlayStateChange?.(false);
   };
 
   // Format time (e.g. 124 -> 02:04)
@@ -94,50 +193,45 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Progress update
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-    }
-  };
-
   // Seek video
   const handleProgressBarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (videoRef.current) {
-      const newTime = parseFloat(e.target.value);
-      videoRef.current.currentTime = newTime;
+    const newTime = parseFloat(e.target.value);
+    safePlayerCall((p) => p.setCurrentTime(newTime)).then((res) => {
+      if (res === null) return;
       setCurrentTime(newTime);
       resetControlsTimeout();
-    }
+    });
   };
 
   // Volume change
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume;
-      videoRef.current.muted = newVolume === 0;
-    }
-    resetControlsTimeout();
+    safePlayerCall((p) => p.setVolume(newVolume)).then((res) => {
+      if (res === null) return;
+      setVolume(newVolume);
+      const isNewVolumeMuted = newVolume === 0;
+      setIsMuted(isNewVolumeMuted);
+      safePlayerCall((p) => p.setMuted(isNewVolumeMuted));
+      if (newVolume > 0) {
+        setHasUnmuteNotice(false);
+      }
+      resetControlsTimeout();
+    });
   };
 
   // Toggle Mute
   const toggleMute = () => {
     const targetMute = !isMuted;
-    setIsMuted(targetMute);
-    if (videoRef.current) {
-      videoRef.current.muted = targetMute;
-      videoRef.current.volume = targetMute ? 0 : volume || 1;
-    }
-    resetControlsTimeout();
+    safePlayerCall((p) => p.setMuted(targetMute)).then((res) => {
+      if (res === null) return;
+      setIsMuted(targetMute);
+      if (!targetMute) {
+        setHasUnmuteNotice(false);
+        safePlayerCall((p) => p.setVolume(1));
+        setVolume(1);
+      }
+      resetControlsTimeout();
+    });
   };
 
   // Toggle Fullscreen
@@ -178,35 +272,35 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     };
   }, [isPlaying]);
 
-  // Auto-play on mount since the user already clicked "Lancer la vidéo"
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().then(() => {
-        setIsPlaying(true);
-        onPlayStateChange?.(true);
-      }).catch((err) => {
-        console.warn("Autoplay on mount failed, waiting for user click:", err);
-      });
-    }
-  }, []);
-
-  // Video error handling - fallback to native controls
-  const handleVideoError = () => {
-    console.warn("Custom video controls error, falling back to standard player");
-    setHasError(true);
-  };
-
-  // If there's an error playing natively with custom controls, render a standard native controls video player as a backup
+  // If error, show a beautiful elite styled repair button screen
   if (hasError) {
     return (
-      <div className="w-full h-full relative bg-black flex items-center justify-center">
-        <video
-          src="/presentation.mp4"
-          className="w-full h-full object-contain block"
-          controls
-          playsInline
-          autoPlay
-        />
+      <div className="w-full h-full relative bg-zinc-950 flex flex-col items-center justify-center p-6 text-center border border-white/5 rounded-2xl">
+        <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mb-4 border border-[#D4AF37]/20">
+          <Info className="w-6 h-6 text-[#D4AF37]" />
+        </div>
+        <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-2 font-display">
+          Lecture Indisponible
+        </h4>
+        <p className="text-[10px] sm:text-xs text-gray-400 max-w-[240px] leading-relaxed mb-5">
+          Impossible de charger le flux vidéo Vimeo. Veuillez rafraîchir la page ou réessayer.
+        </p>
+        <button
+          onClick={() => {
+            setHasError(false);
+            if (playerRef.current) {
+              playerRef.current.unload().then(() => {
+                playerRef.current?.loadVideo(1207432080);
+              });
+            } else {
+              window.location.reload();
+            }
+          }}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#F27D26] text-black font-bold text-[10px] uppercase tracking-wider rounded-full hover:scale-105 active:scale-95 transition-all shadow-[0_4px_15px_rgba(242,125,38,0.25)] cursor-pointer"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Réessayer la lecture</span>
+        </button>
       </div>
     );
   }
@@ -215,35 +309,51 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
     <div
       ref={containerRef}
       id="custom_video_container"
-      className="absolute inset-0 w-full h-full bg-black flex items-center justify-center overflow-hidden"
+      className="absolute inset-0 w-full h-full bg-black flex items-center justify-center overflow-hidden rounded-[26px]"
       onMouseMove={resetControlsTimeout}
       onTouchStart={resetControlsTimeout}
     >
-      {/* HTML5 Native Video Tag - Set src directly on video element and force w-full h-full to avoid mobile collapsing */}
-      <video
-        ref={videoRef}
-        id="native_video_element"
-        src="/presentation.mp4"
-        className="w-full h-full object-contain z-0 block relative"
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onPlay={handlePlayEvent}
-        onPause={handlePauseEvent}
-        onEnded={onEnded}
-        onWaiting={() => setIsBuffering(true)}
-        onPlaying={() => setIsBuffering(false)}
-        onError={handleVideoError}
-        playsInline
-        webkit-playsinline="true"
-        controls={false}
-        preload="auto"
+      {/* Pre-rendered stable iframe to eliminate unmount/remount lag & errors */}
+      <iframe
+        ref={iframeRef}
+        id="vimeo-player-iframe"
+        src="https://player.vimeo.com/video/1207432080?badge=0&autopause=0&player_id=0&app_id=58479&api=1&controls=0&autoplay=1&muted=1&playsinline=1"
+        className="absolute inset-0 w-full h-full border-none pointer-events-none object-cover"
+        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+        referrerPolicy="strict-origin-when-cross-origin"
+        title="MZ+ Elite Presentation"
       />
 
-      {/* Transparent Clickable Overlay to capture play/pause / show controls on tap */}
+      {/* Transparent Clickable Overlay to capture play/pause & trigger unmute */}
       <div
         className="absolute inset-0 z-10 cursor-pointer"
-        onClick={handleContainerClick}
+        onClick={() => {
+          if (hasUnmuteNotice) {
+            toggleMute();
+          } else {
+            handleContainerClick();
+          }
+        }}
       />
+
+      {/* Elegant floating Unmute Banner when muted autoplay is active */}
+      <AnimatePresence>
+        {hasUnmuteNotice && (
+          <motion.button
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleMute();
+            }}
+            className="absolute top-14 left-1/2 -translate-x-1/2 z-40 bg-gradient-to-r from-[#D4AF37] to-[#F27D26] text-black px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all"
+          >
+            <VolumeX className="w-3.5 h-3.5 animate-pulse" />
+            <span>🔊 ACTIVER LE SON</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Buffering spinner overlay */}
       <AnimatePresence>
@@ -261,20 +371,20 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
       {/* Central Play Big Button Overlay (Shows ONLY when paused/not started) */}
       <AnimatePresence>
-        {!isPlaying && (
+        {!isPlaying && !isBuffering && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 pointer-events-none"
+            className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 pointer-events-none"
           >
             <motion.button
               onClick={(e) => {
                 e.stopPropagation();
                 togglePlay();
               }}
-              className="w-16 h-16 rounded-full border border-white/20 bg-black/55 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto shadow-2xl hover:scale-110 active:scale-95 transition-transform duration-300 group"
+              className="w-16 h-16 rounded-full border border-white/10 bg-black/60 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto shadow-2xl hover:scale-110 active:scale-95 transition-transform duration-300 group"
             >
               <Play className="w-6 h-6 text-[#D4AF37] fill-[#D4AF37] ml-1 group-hover:text-amber-400 transition-colors" />
             </motion.button>
@@ -313,7 +423,7 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
               <div className="flex items-center gap-3">
                 <button
                   onClick={togglePlay}
-                  className="text-white hover:text-[#D4AF37] transition-colors p-1 rounded-md"
+                  className="text-white hover:text-[#D4AF37] transition-colors p-1 rounded-md cursor-pointer"
                 >
                   {isPlaying ? (
                     <Pause className="w-4 h-4 fill-current" />
@@ -329,11 +439,16 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
 
               {/* Volume & Fullscreen */}
               <div className="flex items-center gap-3">
+                {/* Active source label in subtle typography */}
+                <span className="hidden sm:inline text-[9px] text-gray-500 font-mono tracking-wider">
+                  Vimeo Stream (HD)
+                </span>
+
                 {/* Volume selector */}
                 <div className="flex items-center gap-1.5 group/volume">
                   <button
                     onClick={toggleMute}
-                    className="text-white hover:text-[#D4AF37] transition-colors p-1"
+                    className="text-white hover:text-[#D4AF37] transition-colors p-1 cursor-pointer"
                   >
                     {isMuted || volume === 0 ? (
                       <VolumeX className="w-4 h-4" />
@@ -355,7 +470,7 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
                 {/* Fullscreen Button */}
                 <button
                   onClick={toggleFullscreen}
-                  className="text-white hover:text-[#D4AF37] transition-colors p-1"
+                  className="text-white hover:text-[#D4AF37] transition-colors p-1 cursor-pointer"
                 >
                   {isFullscreen ? (
                     <Minimize className="w-4 h-4" />
