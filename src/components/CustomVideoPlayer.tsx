@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from "motion/react";
 import Player from "@vimeo/player";
 
 interface CustomVideoPlayerProps {
+  isPlaying: boolean;
   onPlayStateChange?: (playing: boolean) => void;
   onEnded?: () => void;
 }
 
 export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
+  isPlaying: parentIsPlaying,
   onPlayStateChange,
   onEnded,
 }) => {
@@ -54,6 +56,47 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       return null;
     });
   };
+
+  // React to parent's isPlaying state changes (enabling immediate start after background preloading)
+  useEffect(() => {
+    if (!playerRef.current) return;
+
+    if (parentIsPlaying) {
+      // User clicked play! Attempt unmuted high-fidelity playback directly because it is a user gesture
+      safePlayerCall((p) => p.setMuted(false))
+        .then(() => safePlayerCall((p) => p.setVolume(1)))
+        .then(() => {
+          setVolume(1);
+          setIsMuted(false);
+          setHasUnmuteNotice(false);
+          return safePlayerCall((p) => p.play());
+        })
+        .then((res) => {
+          if (res !== null) {
+            setIsPlaying(true);
+            setIsBuffering(false);
+          }
+        })
+        .catch((err) => {
+          console.warn("Direct unmuted playback failed or was blocked, falling back to muted play:", err);
+          // Fallback to safe muted autoplay
+          safePlayerCall((p) => p.setMuted(true))
+            .then(() => safePlayerCall((p) => p.play()))
+            .then((res) => {
+              if (res !== null) {
+                setIsPlaying(true);
+                setIsMuted(true);
+                setHasUnmuteNotice(true);
+              }
+            });
+        });
+    } else {
+      // If the parent says to pause or stop
+      safePlayerCall((p) => p.pause()).then(() => {
+        setIsPlaying(false);
+      });
+    }
+  }, [parentIsPlaying]);
 
   // Initialize Vimeo Player
   useEffect(() => {
@@ -117,16 +160,6 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
         setHasError(true);
       }
       setIsBuffering(false);
-    });
-
-    // Handle initial autoplay attempt
-    player.play().then(() => {
-      setIsPlaying(true);
-      onPlayStateChange?.(true);
-    }).catch((err) => {
-      console.warn("Muted autoplay restriction or block:", err);
-      // Keep unmute notice visible
-      setHasUnmuteNotice(true);
     });
 
     return () => {
@@ -317,7 +350,7 @@ export const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({
       <iframe
         ref={iframeRef}
         id="vimeo-player-iframe"
-        src="https://player.vimeo.com/video/1207432080?badge=0&autopause=0&player_id=0&app_id=58479&api=1&controls=0&autoplay=1&muted=1&playsinline=1"
+        src="https://player.vimeo.com/video/1207432080?badge=0&autopause=0&player_id=0&app_id=58479&api=1&controls=0&autoplay=0&muted=1&playsinline=1"
         className="absolute inset-0 w-full h-full border-none pointer-events-none object-cover"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
         referrerPolicy="strict-origin-when-cross-origin"

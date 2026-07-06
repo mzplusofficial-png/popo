@@ -613,21 +613,20 @@ export default function App() {
               )}
             </AnimatePresence>
 
-            {/* Embedded video player */}
-            {isPlaying && (
-              <div className="absolute inset-0 w-full h-full z-10 bg-black">
-                <CustomVideoPlayer
-                  onPlayStateChange={(playing) => {
-                    if (playing) {
-                      setTimerStarted(true);
-                    }
-                  }}
-                  onEnded={() => {
-                    setIsPlaying(false);
-                  }}
-                />
-              </div>
-            )}
+            {/* Embedded video player - always rendered to preload video instantly in the background */}
+            <div className="absolute inset-0 w-full h-full z-10 bg-black">
+              <CustomVideoPlayer
+                isPlaying={isPlaying}
+                onPlayStateChange={(playing) => {
+                  if (playing) {
+                    setTimerStarted(true);
+                  }
+                }}
+                onEnded={() => {
+                  setIsPlaying(false);
+                }}
+              />
+            </div>
           </div>
 
           {/* Dynamic CTA Button (Matches screenshot exactly: capsules shape, sparkles left, chevron right) */}
