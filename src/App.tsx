@@ -276,7 +276,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  // Dynamic Multi-Step Submission with Chariow Payment API integration
+  // Dynamic Multi-Step Submission with direct high-converting redirect to Chariow Checkout
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !phone || !commitmentCheck) return;
@@ -290,63 +290,32 @@ export default function App() {
     await new Promise((resolve) => setTimeout(resolve, 800));
     setLoadingText("Vérification des places réservées...");
     await new Promise((resolve) => setTimeout(resolve, 800));
-    setLoadingText("Création de votre lien de paiement sécurisé...");
+    setLoadingText("Redirection vers la passerelle de paiement...");
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
+    const targetUrl = "https://mzplus.mychariow.shop/prd_4e7cof60/checkout";
 
     try {
-      // Automatic detection: if hosted on an external service like Netlify, route to the live Cloud Run backend URL
-      const isExternalHost = !window.location.hostname.includes("run.app") && 
-                             !window.location.hostname.includes("localhost") && 
-                             !window.location.hostname.includes("127.0.0.1") &&
-                             !window.location.hostname.includes("webcontainer");
+      setCheckoutUrl(targetUrl);
+      setIsLoading(false);
+      setFormSubmitted(true);
+      playChime();
       
-      const viteMeta = import.meta as any;
-      const apiBaseUrl = isExternalHost 
-        ? (viteMeta.env?.VITE_BACKEND_URL || "https://ais-pre-pmbbj5bvwatelhmholj3ee-307056059286.europe-west2.run.app")
-        : "";
+      // Save to localStorage
+      localStorage.setItem("mz_name", name);
+      localStorage.setItem("mz_email", email);
+      localStorage.setItem("mz_phone", phone);
+      localStorage.setItem("mz_lead_registered", "true");
 
-      const response = await fetch(`${apiBaseUrl}/api/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name,
-          email: email,
-          phone: phone,
-          country_code: selectedCountry.code,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Une erreur est survenue lors de l'initialisation du paiement.");
-      }
-
-      if (data.checkoutUrl) {
-        setCheckoutUrl(data.checkoutUrl);
-        setIsLoading(false);
-        setFormSubmitted(true);
-        playChime();
-        
-        // Save to localStorage
-        localStorage.setItem("mz_name", name);
-        localStorage.setItem("mz_email", email);
-        localStorage.setItem("mz_phone", phone);
-        localStorage.setItem("mz_lead_registered", "true");
-
-        // Try direct redirection if possible
-        try {
-          window.location.href = data.checkoutUrl;
-        } catch (err) {
-          console.log("Direct redirect blocked or failed in sandbox iframe.", err);
-        }
-      } else {
-        throw new Error("Lien de paiement non reçu.");
+      // Direct redirection to the specified Chariow checkout URL
+      try {
+        window.location.href = targetUrl;
+      } catch (err) {
+        console.log("Direct redirect blocked or failed in sandbox iframe, fallback button active.", err);
       }
     } catch (err: any) {
-      console.error("Payment registration error:", err);
-      setPaymentError(err?.message || "Une erreur est survenue lors de la création de la session de paiement.");
+      console.error("Redirection error:", err);
+      setPaymentError("Une erreur est survenue lors de la redirection. Veuillez utiliser le bouton de paiement direct.");
       setIsLoading(false);
     }
   };
@@ -480,8 +449,8 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[#050505] text-gray-100 selection:bg-[#D4AF37] selection:text-black font-sans relative">
         <SalesPage
-          onJoinClick={(priceInfo) => {
-            setIsModalOpen(true);
+          onJoinClick={() => {
+            window.location.href = "https://mzplus.mychariow.shop/prd_4e7cof60/checkout";
           }}
           onBackClick={() => {
             setView('landing');
@@ -491,283 +460,6 @@ export default function App() {
             setSelectedCountry(country);
           }}
         />
-
-
-
-        {/* High-End Immersive Registration Modal */}
-        <AnimatePresence>
-          {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              
-              {/* Modal Backdrop Blur overlay */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={closeModal}
-                className="absolute inset-0 bg-black/90 backdrop-blur-md"
-              />
-
-              {/* Modal Body Container */}
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                transition={{ type: "spring", damping: 25, stiffness: 350 }}
-                className="relative w-full max-w-md bg-[#0b0b0b] border-2 border-white/10 rounded-[32px] p-6 sm:p-8 overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8),0_0_25px_rgba(212,175,55,0.05)]"
-              >
-                
-                {/* Decorative glows inside modal */}
-                <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] rounded-full bg-[#D4AF37]/5 blur-[80px] pointer-events-none" />
-
-                {/* Close button */}
-                <button
-                  onClick={closeModal}
-                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/[0.08] cursor-pointer transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-
-                {!formSubmitted ? (
-                  <div>
-                    {/* Modal Header */}
-                    <div className="text-center mb-6">
-                      <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center mx-auto mb-3 border border-[#D4AF37]/20">
-                        <Award className="w-6 h-6 text-[#D4AF37]" />
-                      </div>
-                      <h3 className="text-xl sm:text-2xl font-bold text-white font-display">
-                        Candidature MZ+ VIP
-                      </h3>
-                      <div className="mt-2.5 inline-flex items-center gap-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-3.5 py-1 rounded-full">
-                        <span className="text-[10px] text-gray-300 font-medium">Frais unique :</span>
-                        <span className="text-xs text-[#D4AF37] font-black">{getPriceForCountry(selectedCountry.code).amount} {getPriceForCountry(selectedCountry.code).currency}</span>
-                      </div>
-                      <p className="text-xs text-white/50 mt-2 max-w-[280px] mx-auto">
-                        Complétez vos coordonnées pour réserver l'une des {remainingSeats} places disponibles.
-                      </p>
-                    </div>
-
-                    {/* Standard Lead Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      
-                      {/* Name input */}
-                      <div>
-                        <label className="block text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-1.5 font-display">
-                          Votre Nom Complet
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="Ex: Mamadou Koné"
-                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors"
-                        />
-                      </div>
-
-                      {/* Email input */}
-                      <div>
-                        <label className="block text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-1.5 font-display">
-                          Votre Adresse Email
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Ex: mamadou@gmail.com"
-                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors"
-                        />
-                      </div>
-
-                      {/* Country & Phone layout */}
-                      <div>
-                        <label className="block text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-1.5 font-display">
-                          Numéro WhatsApp Privé
-                        </label>
-                        <div className="flex gap-2">
-                          {/* Custom dropdown */}
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
-                              className="flex items-center gap-1.5 bg-white/[0.02] border border-white/10 rounded-xl px-3 py-3 text-sm text-white cursor-pointer hover:bg-white/[0.05] transition-colors"
-                            >
-                              <span className="text-base">{selectedCountry.flag}</span>
-                              <span className="text-xs font-semibold">{selectedCountry.prefix}</span>
-                              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-                            </button>
-
-                            {/* Country Selection Dropdown list */}
-                            <AnimatePresence>
-                              {countryDropdownOpen && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: 5 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0, y: 5 }}
-                                  className="absolute left-0 mt-2 w-56 max-h-56 overflow-y-auto bg-zinc-950 border border-white/10 rounded-xl shadow-2xl z-50 p-1"
-                                >
-                                  {COUNTRIES.map((country) => (
-                                    <button
-                                      key={country.code}
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedCountry(country);
-                                        setCountryDropdownOpen(false);
-                                      }}
-                                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-white/[0.05] rounded-lg cursor-pointer transition-colors"
-                                    >
-                                      <span className="flex items-center gap-2">
-                                        <span>{country.flag}</span>
-                                        <span>{country.name}</span>
-                                      </span>
-                                      <span className="text-gray-400 font-mono">{country.prefix}</span>
-                                    </button>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          {/* Phone text field */}
-                          <input
-                            type="tel"
-                            required
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="Ex: 07 45 89 12"
-                            className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Neuromarketing Cognitive Commitment check */}
-                      <div className="pt-2">
-                        <label className="flex items-start gap-2.5 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            required
-                            checked={commitmentCheck}
-                            onChange={(e) => setCommitmentCheck(e.target.checked)}
-                            className="mt-1 rounded border-white/10 text-[#D4AF37] focus:ring-[#D4AF37] bg-white/[0.02] accent-[#D4AF37]"
-                          />
-                          <span className="text-xs text-gray-400 leading-normal">
-                            Je m'engage à consacrer au moins <span className="text-white font-semibold">2h par jour</span> pour suivre les instructions de MZ+ et viser le million de FCFA mensuel.
-                          </span>
-                        </label>
-                      </div>
-
-                      {/* Payment or Configuration Error Display */}
-                      {paymentError && (
-                        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/15 rounded-xl p-3 text-center leading-relaxed">
-                          ⚠️ {paymentError}
-                        </div>
-                      )}
-
-                      {/* Submit Button */}
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full group mt-4 relative bg-gradient-to-r from-[#D4AF37] to-[#F27D26] hover:scale-[1.02] active:scale-[0.98] text-black font-bold py-3.5 px-4 rounded-xl shadow-[0_10px_30px_rgba(242,125,38,0.2)] flex items-center justify-center gap-2 transition-all cursor-pointer"
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-2">
-                            <svg className="animate-spin h-5 w-5 text-black" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            <span className="text-sm font-bold tracking-wide uppercase">{loadingText}</span>
-                          </div>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4 text-black" />
-                            <span className="text-sm font-bold tracking-wide uppercase">Rejoindre le Système des Millionnaires</span>
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  </div>
-                ) : (
-                  /* Cinematic Success and Onboarding Step Screen */
-                  <div className="text-center py-6">
-                    <motion.div
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", duration: 0.8 }}
-                      className="w-16 h-16 bg-gradient-to-tr from-[#D4AF37] to-[#F27D26] rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(242,125,38,0.4)]"
-                    >
-                      <Check className="w-9 h-9 text-black stroke-[3]" />
-                    </motion.div>
-
-                    <h3 className="text-2xl font-black text-white font-display uppercase tracking-tight mb-2">
-                      Candidature Approuvée !
-                    </h3>
-                    
-                    <p className="text-xs text-gray-400 max-w-[280px] mx-auto mb-6">
-                      Félicitations <span className="text-white font-bold">{name}</span>, votre accès prioritaire est maintenant réservé pour les prochaines 15 minutes.
-                    </p>
-
-                    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-left space-y-3 mb-6">
-                      <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-extrabold text-center">
-                        ÉTAPE CRUCIALE : PROCÉDER AU PAIEMENT
-                      </p>
-                      <p className="text-xs text-gray-300 text-center leading-relaxed">
-                        Pour activer immédiatement vos accès VIP au système MZ+, veuillez finaliser votre paiement unique de <span className="text-white font-bold">{getPriceForCountry(selectedCountry.code).amount} {getPriceForCountry(selectedCountry.code).currency}</span> via notre passerelle sécurisée.
-                      </p>
-                    </div>
-
-                    {/* Primary Secure Chariow Checkout Button */}
-                    {checkoutUrl ? (
-                      <a
-                        href={checkoutUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group relative w-full bg-gradient-to-r from-[#D4AF37] to-[#F27D26] hover:scale-[1.02] active:scale-[0.98] text-black font-black py-4 px-4 rounded-xl shadow-[0_0_25px_rgba(242,125,38,0.3)] hover:shadow-[0_0_35px_rgba(242,125,38,0.5)] flex items-center justify-center gap-2.5 transition-all duration-300 cursor-pointer"
-                      >
-                        <span className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F27D26] blur opacity-30 group-hover:opacity-60 transition-opacity animate-pulse" />
-                        
-                        <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-black/10">
-                          <CheckCircle2 className="w-4 h-4 text-black" />
-                        </span>
-                        <span className="relative tracking-wider font-extrabold uppercase text-sm">PROCÉDER AU PAIEMENT SÉCURISÉ</span>
-                      </a>
-                    ) : (
-                      <p className="text-xs text-rose-500 font-semibold mb-4">Lien de paiement introuvable.</p>
-                    )}
-
-                    {/* Secondary WhatsApp Support / Assistance Section */}
-                    <div className="mt-6 pt-6 border-t border-white/5 space-y-2">
-                      <p className="text-[10px] uppercase tracking-widest text-emerald-500 font-extrabold text-center">
-                        BESOIN D'ASSISTANCE OU PREUVE DE PAIEMENT :
-                      </p>
-                      <p className="text-[11px] text-gray-400 mb-2">
-                        Si vous rencontrez le moindre problème lors du paiement, contactez notre support VIP direct :
-                      </p>
-                      <a
-                        href={`https://api.whatsapp.com/send?phone=2250700000000&text=${encodeURIComponent(
-                          `Bonjour MZ+ Elite, je m'appelle ${name}. Je viens de m'inscrire depuis le pays ${selectedCountry.name} ${selectedCountry.flag} et je souhaite valider mon accès VIP au système pour un montant de ${getPriceForCountry(selectedCountry.code).amount} ${getPriceForCountry(selectedCountry.code).currency}.`
-                        )}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group w-full bg-white/[0.03] border border-white/10 hover:bg-emerald-500/10 hover:border-emerald-500 hover:text-emerald-400 text-gray-300 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer"
-                      >
-                        <span className="text-sm">💬</span>
-                        <span className="text-xs uppercase tracking-wide">Contacter le Support WhatsApp VIP</span>
-                      </a>
-                    </div>
-
-                    <button
-                      onClick={() => setFormSubmitted(false)}
-                      className="mt-5 text-xs text-gray-500 hover:text-gray-400 cursor-pointer underline transition-colors block mx-auto animate-fade-in"
-                    >
-                      Corriger mes coordonnées
-                    </button>
-                  </div>
-                )}
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
       </div>
     );
   }
@@ -1323,30 +1015,52 @@ export default function App() {
 
                   <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-left space-y-3 mb-6">
                     <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-extrabold text-center">
-                      ÉTAPE SUIVANTE CRUCIALE :
+                      ÉTAPE CRUCIALE : PROCÉDER AU PAIEMENT
                     </p>
                     <p className="text-xs text-gray-300 text-center leading-relaxed">
-                      Rejoignez immédiatement le <span className="text-white font-bold">Canal d'Accueil VIP</span> sur WhatsApp pour recevoir vos accès personnels et votre pack de bienvenue.
+                      Pour activer immédiatement vos accès VIP au système MZ+, veuillez finaliser votre paiement unique de <span className="text-white font-bold">{getPriceForCountry(selectedCountry.code).amount} {getPriceForCountry(selectedCountry.code).currency}</span> via notre passerelle sécurisée.
                     </p>
                   </div>
 
-                  {/* Pulsing Green WhatsApp Call To Action button */}
-                  <a
-                    href={`https://api.whatsapp.com/send?phone=2250700000000&text=${encodeURIComponent(
-                      `Bonjour MZ+ Elite, je m'appelle ${name}. Je viens de m'inscrire depuis le pays ${selectedCountry.name} ${selectedCountry.flag} et je souhaite valider mon accès VIP au système pour un montant de ${getPriceForCountry(selectedCountry.code).amount} ${getPriceForCountry(selectedCountry.code).currency}.`
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group relative w-full bg-emerald-500 hover:bg-emerald-400 text-white font-black py-4 px-4 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2.5 transition-all duration-300 cursor-pointer"
-                  >
-                    {/* Animated green shadow pulsing */}
-                    <span className="absolute -inset-0.5 rounded-xl bg-emerald-500 blur opacity-30 group-hover:opacity-60 transition-opacity animate-pulse" />
-                    
-                    <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-black/10">
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                    </span>
-                    <span className="relative tracking-wider font-extrabold uppercase text-sm">REJOINDRE LE CANAL WHATSAPP VIP</span>
-                  </a>
+                  {/* Primary Secure Chariow Checkout Button */}
+                  {checkoutUrl ? (
+                    <a
+                      href={checkoutUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group relative w-full bg-gradient-to-r from-[#D4AF37] to-[#F27D26] hover:scale-[1.02] active:scale-[0.98] text-black font-black py-4 px-4 rounded-xl shadow-[0_0_25px_rgba(242,125,38,0.3)] hover:shadow-[0_0_35px_rgba(242,125,38,0.5)] flex items-center justify-center gap-2.5 transition-all duration-300 cursor-pointer"
+                    >
+                      <span className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F27D26] blur opacity-30 group-hover:opacity-60 transition-opacity animate-pulse" />
+                      
+                      <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-black/10">
+                        <CheckCircle2 className="w-4 h-4 text-black" />
+                      </span>
+                      <span className="relative tracking-wider font-extrabold uppercase text-sm">PROCÉDER AU PAIEMENT SÉCURISÉ</span>
+                    </a>
+                  ) : (
+                    <p className="text-xs text-rose-500 font-semibold mb-4">Lien de paiement introuvable.</p>
+                  )}
+
+                  {/* Secondary WhatsApp Support / Assistance Section */}
+                  <div className="mt-6 pt-6 border-t border-white/5 space-y-2">
+                    <p className="text-[10px] uppercase tracking-widest text-emerald-500 font-extrabold text-center">
+                      BESOIN D'ASSISTANCE OU PREUVE DE PAIEMENT :
+                    </p>
+                    <p className="text-[11px] text-gray-400 mb-2">
+                      Si vous rencontrez le moindre problème lors du paiement, contactez notre support VIP direct :
+                    </p>
+                    <a
+                      href={`https://api.whatsapp.com/send?phone=2250700000000&text=${encodeURIComponent(
+                        `Bonjour MZ+ Elite, je m'appelle ${name}. Je viens de m'inscrire depuis le pays ${selectedCountry.name} ${selectedCountry.flag} et je souhaite valider mon accès VIP au système pour un montant de ${getPriceForCountry(selectedCountry.code).amount} ${getPriceForCountry(selectedCountry.code).currency}.`
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group w-full bg-white/[0.03] border border-white/10 hover:bg-emerald-500/10 hover:border-emerald-500 hover:text-emerald-400 text-gray-300 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer"
+                    >
+                      <span className="text-sm">💬</span>
+                      <span className="text-xs uppercase tracking-wide">Contacter le Support WhatsApp VIP</span>
+                    </a>
+                  </div>
 
                   <button
                     onClick={() => setFormSubmitted(false)}
