@@ -293,7 +293,18 @@ export default function App() {
     setLoadingText("Création de votre lien de paiement sécurisé...");
 
     try {
-      const response = await fetch("/api/checkout", {
+      // Automatic detection: if hosted on an external service like Netlify, route to the live Cloud Run backend URL
+      const isExternalHost = !window.location.hostname.includes("run.app") && 
+                             !window.location.hostname.includes("localhost") && 
+                             !window.location.hostname.includes("127.0.0.1") &&
+                             !window.location.hostname.includes("webcontainer");
+      
+      const viteMeta = import.meta as any;
+      const apiBaseUrl = isExternalHost 
+        ? (viteMeta.env?.VITE_BACKEND_URL || "https://ais-pre-pmbbj5bvwatelhmholj3ee-307056059286.europe-west2.run.app")
+        : "";
+
+      const response = await fetch(`${apiBaseUrl}/api/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
