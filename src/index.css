@@ -54,6 +54,22 @@ html {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    left: -150%;
+  }
+  50% {
+    left: 150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+.shimmer-effect {
+  animation: shimmer 3s infinite;
+}
+
 .ambient-glow-orange {
   animation: ambient-pulse 18s infinite ease-in-out;
 }

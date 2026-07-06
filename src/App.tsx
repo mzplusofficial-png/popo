@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { CustomVideoPlayer } from "./components/CustomVideoPlayer";
+import { SalesPage, getPriceForCountry } from "./components/SalesPage";
 import {
   Play,
   Volume2,
@@ -44,20 +45,64 @@ interface Country {
   flag: string;
 }
 
-// African Countries using FCFA & surrounding French-speaking high-converting regions
+// Comprehensive list of all African countries without exception, plus France/Canada
 const COUNTRIES: Country[] = [
   { code: "CI", name: "Côte d'Ivoire", prefix: "+225", flag: "🇨🇮" },
-  { code: "SN", name: "Sénégal", prefix: "+221", flag: "🇸🇳" },
-  { code: "CM", name: "Cameroun", prefix: "+237", flag: "🇨🇲" },
-  { code: "GA", name: "Gabon", prefix: "+241", flag: "🇬🇦" },
-  { code: "TG", name: "Togo", prefix: "+228", flag: "🇹🇬" },
+  { code: "DZ", name: "Algérie", prefix: "+213", flag: "🇩🇿" },
+  { code: "AO", name: "Angola", prefix: "+244", flag: "🇦🇴" },
   { code: "BJ", name: "Bénin", prefix: "+229", flag: "🇧🇯" },
+  { code: "BW", name: "Botswana", prefix: "+267", flag: "🇧🇼" },
   { code: "BF", name: "Burkina Faso", prefix: "+226", flag: "🇧🇫" },
-  { code: "ML", name: "Mali", prefix: "+223", flag: "🇲🇱" },
+  { code: "BI", name: "Burundi", prefix: "+257", flag: "🇧🇮" },
+  { code: "CM", name: "Cameroun", prefix: "+237", flag: "🇨🇲" },
+  { code: "CV", name: "Cap-Vert", prefix: "+238", flag: "🇨🇻" },
+  { code: "CF", name: "République Centrafricaine", prefix: "+236", flag: "🇨🇫" },
+  { code: "KM", name: "Comores", prefix: "+269", flag: "🇰🇲" },
   { code: "CG", name: "Congo-Brazzaville", prefix: "+242", flag: "🇨🇬" },
+  { code: "CD", name: "RDC (Congo-Kinshasa)", prefix: "+243", flag: "🇨🇩" },
+  { code: "DJ", name: "Djibouti", prefix: "+253", flag: "🇩🇯" },
+  { code: "EG", name: "Égypte", prefix: "+20", flag: "🇪🇬" },
+  { code: "ER", name: "Érythrée", prefix: "+291", flag: "🇪🇷" },
+  { code: "SZ", name: "Eswatini", prefix: "+268", flag: "🇸🇿" },
+  { code: "ET", name: "Éthiopie", prefix: "+251", flag: "🇪🇹" },
+  { code: "GA", name: "Gabon", prefix: "+241", flag: "🇬🇦" },
+  { code: "GM", name: "Gambie", prefix: "+220", flag: "🇬🇲" },
+  { code: "GH", name: "Ghana", prefix: "+233", flag: "🇬🇭" },
+  { code: "GN", name: "Guinée", prefix: "+224", flag: "🇬🇳" },
+  { code: "GW", name: "Guinée-Bissau", prefix: "+245", flag: "🇬🇼" },
+  { code: "GQ", name: "Guinée Équatoriale", prefix: "+240", flag: "🇬🇶" },
+  { code: "KE", name: "Kenya", prefix: "+254", flag: "🇰🇪" },
+  { code: "LS", name: "Lesotho", prefix: "+266", flag: "🇱🇸" },
+  { code: "LR", name: "Libéria", prefix: "+231", flag: "🇱🇷" },
+  { code: "LY", name: "Libye", prefix: "+218", flag: "🇱🇾" },
+  { code: "MG", name: "Madagascar", prefix: "+261", flag: "🇲🇬" },
+  { code: "MW", name: "Malawi", prefix: "+265", flag: "🇲🇼" },
+  { code: "ML", name: "Mali", prefix: "+223", flag: "🇲🇱" },
+  { code: "MA", name: "Maroc", prefix: "+212", flag: "🇲🇦" },
+  { code: "MU", name: "Maurice", prefix: "+230", flag: "🇲🇺" },
+  { code: "MR", name: "Mauritanie", prefix: "+222", flag: "🇲🇷" },
+  { code: "MZ", name: "Mozambique", prefix: "+258", flag: "🇲🇿" },
+  { code: "NA", name: "Namibie", prefix: "+264", flag: "🇳🇦" },
   { code: "NE", name: "Niger", prefix: "+227", flag: "🇳🇪" },
-  { code: "CD", name: "RDC", prefix: "+243", flag: "🇨🇩" },
-  { code: "GN", name: "Guinée", prefix: "+224", flag: "🇬🇳" }
+  { code: "NG", name: "Nigéria", prefix: "+234", flag: "🇳🇬" },
+  { code: "UG", name: "Ouganda", prefix: "+256", flag: "🇺🇬" },
+  { code: "RW", name: "Rwanda", prefix: "+250", flag: "🇷🇼" },
+  { code: "ST", name: "Sao Tomé-et-Principe", prefix: "+239", flag: "🇸🇹" },
+  { code: "SN", name: "Sénégal", prefix: "+221", flag: "🇸🇳" },
+  { code: "SC", name: "Seychelles", prefix: "+248", flag: "🇸🇨" },
+  { code: "SL", name: "Sierra Leone", prefix: "+232", flag: "🇸🇱" },
+  { code: "SO", name: "Somalie", prefix: "+252", flag: "🇸🇴" },
+  { code: "SD", name: "Soudan", prefix: "+249", flag: "🇸🇩" },
+  { code: "SS", name: "Soudan du Sud", prefix: "+211", flag: "🇸🇸" },
+  { code: "ZA", name: "Afrique du Sud", prefix: "+27", flag: "🇿🇦" },
+  { code: "TZ", name: "Tanzanie", prefix: "+255", flag: "🇹🇿" },
+  { code: "TD", name: "Tchad", prefix: "+235", flag: "🇹🇩" },
+  { code: "TG", name: "Togo", prefix: "+228", flag: "🇹🇬" },
+  { code: "TN", name: "Tunisie", prefix: "+216", flag: "🇹🇳" },
+  { code: "ZM", name: "Zambie", prefix: "+260", flag: "🇿🇲" },
+  { code: "ZW", name: "Zimbabwe", prefix: "+263", flag: "🇿🇼" },
+  { code: "FR", name: "France / Europe", prefix: "+33", flag: "🇪🇺" },
+  { code: "CA", name: "Canada", prefix: "+1", flag: "🇨🇦" }
 ];
 
 // Interactive live social proof notifications list
@@ -78,6 +123,7 @@ export default function App() {
   const ctaSectionRef = useRef<HTMLDivElement>(null);
 
   // States
+  const [view, setView] = useState<'landing' | 'sales'>('landing');
   const [isPlaying, setIsPlaying] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
@@ -92,6 +138,10 @@ export default function App() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [commitmentCheck, setCommitmentCheck] = useState(false);
+  
+  // Chariow Payment integration state
+  const [checkoutUrl, setCheckoutUrl] = useState("");
+  const [paymentError, setPaymentError] = useState("");
 
   // Live social proof toast state
   const [currentToast, setCurrentToast] = useState<typeof LIVE_NOTIFICATIONS[0] | null>(null);
@@ -121,30 +171,7 @@ export default function App() {
     };
   }, []);
 
-  // Display toast notifications sequentially
-  useEffect(() => {
-    const triggerToast = () => {
-      const randomIndex = Math.floor(Math.random() * LIVE_NOTIFICATIONS.length);
-      setCurrentToast(LIVE_NOTIFICATIONS[randomIndex]);
-      setToastVisible(true);
 
-      // Hide after 5 seconds
-      setTimeout(() => {
-        setToastVisible(false);
-      }, 5000);
-    };
-
-    // Initial toast
-    const initialTimeout = setTimeout(triggerToast, 4000);
-
-    // Dynamic repeating toasts
-    const toastInterval = setInterval(triggerToast, 14000);
-
-    return () => {
-      clearTimeout(initialTimeout);
-      clearInterval(toastInterval);
-    };
-  }, []);
 
   // Smooth scroll helper
   const scrollTo = (ref: React.RefObject<HTMLDivElement | null>) => {
@@ -249,27 +276,68 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  // Dynamic Multi-Step Submission Simulation (Enhances percieved luxury & high value)
-  const handleSubmit = (e: React.FormEvent) => {
+  // Dynamic Multi-Step Submission with Chariow Payment API integration
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !phone || !commitmentCheck) return;
 
     setIsLoading(true);
+    setPaymentError("");
+    setCheckoutUrl("");
     setLoadingText("Vérification de l'éligibilité...");
 
-    setTimeout(() => {
-      setLoadingText("Vérification des places réservées...");
-      setTimeout(() => {
-        setLoadingText("Finalisation de votre accès VIP...");
-        setTimeout(() => {
-          setIsLoading(false);
-          setFormSubmitted(true);
-          playChime();
-          // Store locally to persist submission indicator
-          localStorage.setItem("mz_lead_registered", "true");
-        }, 1200);
-      }, 1000);
-    }, 1000);
+    // Keep the premium multi-step loading experience
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    setLoadingText("Vérification des places réservées...");
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    setLoadingText("Création de votre lien de paiement sécurisé...");
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          phone: phone,
+          country_code: selectedCountry.code,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Une erreur est survenue lors de l'initialisation du paiement.");
+      }
+
+      if (data.checkoutUrl) {
+        setCheckoutUrl(data.checkoutUrl);
+        setIsLoading(false);
+        setFormSubmitted(true);
+        playChime();
+        
+        // Save to localStorage
+        localStorage.setItem("mz_name", name);
+        localStorage.setItem("mz_email", email);
+        localStorage.setItem("mz_phone", phone);
+        localStorage.setItem("mz_lead_registered", "true");
+
+        // Try direct redirection if possible
+        try {
+          window.location.href = data.checkoutUrl;
+        } catch (err) {
+          console.log("Direct redirect blocked or failed in sandbox iframe.", err);
+        }
+      } else {
+        throw new Error("Lien de paiement non reçu.");
+      }
+    } catch (err: any) {
+      console.error("Payment registration error:", err);
+      setPaymentError(err?.message || "Une erreur est survenue lors de la création de la session de paiement.");
+      setIsLoading(false);
+    }
   };
 
   // Close modal and reset state
@@ -396,6 +464,302 @@ export default function App() {
       )
     }
   ];
+
+  if (view === 'sales') {
+    return (
+      <div className="min-h-screen bg-[#050505] text-gray-100 selection:bg-[#D4AF37] selection:text-black font-sans relative">
+        <SalesPage
+          onJoinClick={(priceInfo) => {
+            setIsModalOpen(true);
+          }}
+          onBackClick={() => {
+            setView('landing');
+          }}
+          selectedCountry={selectedCountry}
+          onCountrySelect={(country) => {
+            setSelectedCountry(country);
+          }}
+        />
+
+
+
+        {/* High-End Immersive Registration Modal */}
+        <AnimatePresence>
+          {isModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              
+              {/* Modal Backdrop Blur overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={closeModal}
+                className="absolute inset-0 bg-black/90 backdrop-blur-md"
+              />
+
+              {/* Modal Body Container */}
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className="relative w-full max-w-md bg-[#0b0b0b] border-2 border-white/10 rounded-[32px] p-6 sm:p-8 overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8),0_0_25px_rgba(212,175,55,0.05)]"
+              >
+                
+                {/* Decorative glows inside modal */}
+                <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] rounded-full bg-[#D4AF37]/5 blur-[80px] pointer-events-none" />
+
+                {/* Close button */}
+                <button
+                  onClick={closeModal}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/[0.08] cursor-pointer transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                {!formSubmitted ? (
+                  <div>
+                    {/* Modal Header */}
+                    <div className="text-center mb-6">
+                      <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center mx-auto mb-3 border border-[#D4AF37]/20">
+                        <Award className="w-6 h-6 text-[#D4AF37]" />
+                      </div>
+                      <h3 className="text-xl sm:text-2xl font-bold text-white font-display">
+                        Candidature MZ+ VIP
+                      </h3>
+                      <div className="mt-2.5 inline-flex items-center gap-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-3.5 py-1 rounded-full">
+                        <span className="text-[10px] text-gray-300 font-medium">Frais unique :</span>
+                        <span className="text-xs text-[#D4AF37] font-black">{getPriceForCountry(selectedCountry.code).amount} {getPriceForCountry(selectedCountry.code).currency}</span>
+                      </div>
+                      <p className="text-xs text-white/50 mt-2 max-w-[280px] mx-auto">
+                        Complétez vos coordonnées pour réserver l'une des {remainingSeats} places disponibles.
+                      </p>
+                    </div>
+
+                    {/* Standard Lead Form */}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      
+                      {/* Name input */}
+                      <div>
+                        <label className="block text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-1.5 font-display">
+                          Votre Nom Complet
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="Ex: Mamadou Koné"
+                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors"
+                        />
+                      </div>
+
+                      {/* Email input */}
+                      <div>
+                        <label className="block text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-1.5 font-display">
+                          Votre Adresse Email
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Ex: mamadou@gmail.com"
+                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors"
+                        />
+                      </div>
+
+                      {/* Country & Phone layout */}
+                      <div>
+                        <label className="block text-[11px] uppercase tracking-wider text-[#D4AF37] font-bold mb-1.5 font-display">
+                          Numéro WhatsApp Privé
+                        </label>
+                        <div className="flex gap-2">
+                          {/* Custom dropdown */}
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+                              className="flex items-center gap-1.5 bg-white/[0.02] border border-white/10 rounded-xl px-3 py-3 text-sm text-white cursor-pointer hover:bg-white/[0.05] transition-colors"
+                            >
+                              <span className="text-base">{selectedCountry.flag}</span>
+                              <span className="text-xs font-semibold">{selectedCountry.prefix}</span>
+                              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                            </button>
+
+                            {/* Country Selection Dropdown list */}
+                            <AnimatePresence>
+                              {countryDropdownOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: 5 }}
+                                  className="absolute left-0 mt-2 w-56 max-h-56 overflow-y-auto bg-zinc-950 border border-white/10 rounded-xl shadow-2xl z-50 p-1"
+                                >
+                                  {COUNTRIES.map((country) => (
+                                    <button
+                                      key={country.code}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedCountry(country);
+                                        setCountryDropdownOpen(false);
+                                      }}
+                                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-white/[0.05] rounded-lg cursor-pointer transition-colors"
+                                    >
+                                      <span className="flex items-center gap-2">
+                                        <span>{country.flag}</span>
+                                        <span>{country.name}</span>
+                                      </span>
+                                      <span className="text-gray-400 font-mono">{country.prefix}</span>
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* Phone text field */}
+                          <input
+                            type="tel"
+                            required
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Ex: 07 45 89 12"
+                            className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Neuromarketing Cognitive Commitment check */}
+                      <div className="pt-2">
+                        <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            required
+                            checked={commitmentCheck}
+                            onChange={(e) => setCommitmentCheck(e.target.checked)}
+                            className="mt-1 rounded border-white/10 text-[#D4AF37] focus:ring-[#D4AF37] bg-white/[0.02] accent-[#D4AF37]"
+                          />
+                          <span className="text-xs text-gray-400 leading-normal">
+                            Je m'engage à consacrer au moins <span className="text-white font-semibold">2h par jour</span> pour suivre les instructions de MZ+ et viser le million de FCFA mensuel.
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Payment or Configuration Error Display */}
+                      {paymentError && (
+                        <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/15 rounded-xl p-3 text-center leading-relaxed">
+                          ⚠️ {paymentError}
+                        </div>
+                      )}
+
+                      {/* Submit Button */}
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full group mt-4 relative bg-gradient-to-r from-[#D4AF37] to-[#F27D26] hover:scale-[1.02] active:scale-[0.98] text-black font-bold py-3.5 px-4 rounded-xl shadow-[0_10px_30px_rgba(242,125,38,0.2)] flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center gap-2">
+                            <svg className="animate-spin h-5 w-5 text-black" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            <span className="text-sm font-bold tracking-wide uppercase">{loadingText}</span>
+                          </div>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 text-black" />
+                            <span className="text-sm font-bold tracking-wide uppercase">Rejoindre le Système des Millionnaires</span>
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  /* Cinematic Success and Onboarding Step Screen */
+                  <div className="text-center py-6">
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", duration: 0.8 }}
+                      className="w-16 h-16 bg-gradient-to-tr from-[#D4AF37] to-[#F27D26] rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(242,125,38,0.4)]"
+                    >
+                      <Check className="w-9 h-9 text-black stroke-[3]" />
+                    </motion.div>
+
+                    <h3 className="text-2xl font-black text-white font-display uppercase tracking-tight mb-2">
+                      Candidature Approuvée !
+                    </h3>
+                    
+                    <p className="text-xs text-gray-400 max-w-[280px] mx-auto mb-6">
+                      Félicitations <span className="text-white font-bold">{name}</span>, votre accès prioritaire est maintenant réservé pour les prochaines 15 minutes.
+                    </p>
+
+                    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-left space-y-3 mb-6">
+                      <p className="text-[10px] uppercase tracking-widest text-[#D4AF37] font-extrabold text-center">
+                        ÉTAPE CRUCIALE : PROCÉDER AU PAIEMENT
+                      </p>
+                      <p className="text-xs text-gray-300 text-center leading-relaxed">
+                        Pour activer immédiatement vos accès VIP au système MZ+, veuillez finaliser votre paiement unique de <span className="text-white font-bold">{getPriceForCountry(selectedCountry.code).amount} {getPriceForCountry(selectedCountry.code).currency}</span> via notre passerelle sécurisée.
+                      </p>
+                    </div>
+
+                    {/* Primary Secure Chariow Checkout Button */}
+                    {checkoutUrl ? (
+                      <a
+                        href={checkoutUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group relative w-full bg-gradient-to-r from-[#D4AF37] to-[#F27D26] hover:scale-[1.02] active:scale-[0.98] text-black font-black py-4 px-4 rounded-xl shadow-[0_0_25px_rgba(242,125,38,0.3)] hover:shadow-[0_0_35px_rgba(242,125,38,0.5)] flex items-center justify-center gap-2.5 transition-all duration-300 cursor-pointer"
+                      >
+                        <span className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#F27D26] blur opacity-30 group-hover:opacity-60 transition-opacity animate-pulse" />
+                        
+                        <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-black/10">
+                          <CheckCircle2 className="w-4 h-4 text-black" />
+                        </span>
+                        <span className="relative tracking-wider font-extrabold uppercase text-sm">PROCÉDER AU PAIEMENT SÉCURISÉ</span>
+                      </a>
+                    ) : (
+                      <p className="text-xs text-rose-500 font-semibold mb-4">Lien de paiement introuvable.</p>
+                    )}
+
+                    {/* Secondary WhatsApp Support / Assistance Section */}
+                    <div className="mt-6 pt-6 border-t border-white/5 space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-emerald-500 font-extrabold text-center">
+                        BESOIN D'ASSISTANCE OU PREUVE DE PAIEMENT :
+                      </p>
+                      <p className="text-[11px] text-gray-400 mb-2">
+                        Si vous rencontrez le moindre problème lors du paiement, contactez notre support VIP direct :
+                      </p>
+                      <a
+                        href={`https://api.whatsapp.com/send?phone=2250700000000&text=${encodeURIComponent(
+                          `Bonjour MZ+ Elite, je m'appelle ${name}. Je viens de m'inscrire depuis le pays ${selectedCountry.name} ${selectedCountry.flag} et je souhaite valider mon accès VIP au système pour un montant de ${getPriceForCountry(selectedCountry.code).amount} ${getPriceForCountry(selectedCountry.code).currency}.`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group w-full bg-white/[0.03] border border-white/10 hover:bg-emerald-500/10 hover:border-emerald-500 hover:text-emerald-400 text-gray-300 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer"
+                      >
+                        <span className="text-sm">💬</span>
+                        <span className="text-xs uppercase tracking-wide">Contacter le Support WhatsApp VIP</span>
+                      </a>
+                    </div>
+
+                    <button
+                      onClick={() => setFormSubmitted(false)}
+                      className="mt-5 text-xs text-gray-500 hover:text-gray-400 cursor-pointer underline transition-colors block mx-auto animate-fade-in"
+                    >
+                      Corriger mes coordonnées
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050505] text-gray-100 overflow-x-hidden selection:bg-[#D4AF37] selection:text-black font-sans relative">
@@ -668,7 +1032,10 @@ export default function App() {
                 </button>
               ) : (
                 <motion.button
-                  onClick={openRegistrationModal}
+                  onClick={() => {
+                    setView("sales");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   id="btn_rejoindre_mz_cta"
                   initial={{ scale: 0.95 }}
                   animate={{ scale: [1, 1.02, 1] }}
@@ -781,7 +1148,11 @@ export default function App() {
                     <h3 className="text-xl sm:text-2xl font-bold text-white font-display">
                       Candidature MZ+ VIP
                     </h3>
-                    <p className="text-xs text-white/50 mt-1 max-w-[280px] mx-auto">
+                    <div className="mt-2.5 inline-flex items-center gap-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 px-3.5 py-1 rounded-full">
+                      <span className="text-[10px] text-gray-300 font-medium">Frais unique :</span>
+                      <span className="text-xs text-[#D4AF37] font-black">{getPriceForCountry(selectedCountry.code).amount} {getPriceForCountry(selectedCountry.code).currency}</span>
+                    </div>
+                    <p className="text-xs text-white/50 mt-2 max-w-[280px] mx-auto">
                       Complétez vos coordonnées pour réserver l'une des {remainingSeats} places disponibles.
                     </p>
                   </div>
@@ -913,7 +1284,7 @@ export default function App() {
                       ) : (
                         <>
                           <Send className="w-4 h-4 text-black" />
-                          <span className="text-sm font-bold tracking-wide uppercase">Envoyer ma Demande d'Accès</span>
+                          <span className="text-sm font-bold tracking-wide uppercase">Rejoindre le Système des Millionnaires</span>
                         </>
                       )}
                     </button>
@@ -950,7 +1321,9 @@ export default function App() {
 
                   {/* Pulsing Green WhatsApp Call To Action button */}
                   <a
-                    href="https://wa.me/message/MZPLUS" // Placeholder/Interactive link
+                    href={`https://api.whatsapp.com/send?phone=2250700000000&text=${encodeURIComponent(
+                      `Bonjour MZ+ Elite, je m'appelle ${name}. Je viens de m'inscrire depuis le pays ${selectedCountry.name} ${selectedCountry.flag} et je souhaite valider mon accès VIP au système pour un montant de ${getPriceForCountry(selectedCountry.code).amount} ${getPriceForCountry(selectedCountry.code).currency}.`
+                    )}`}
                     target="_blank"
                     rel="noreferrer"
                     className="group relative w-full bg-emerald-500 hover:bg-emerald-400 text-white font-black py-4 px-4 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2.5 transition-all duration-300 cursor-pointer"
