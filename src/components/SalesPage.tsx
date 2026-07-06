@@ -7,6 +7,8 @@ import {
   TrendingUp,
   ShieldCheck,
   ChevronRight,
+  ChevronDown,
+  HelpCircle,
   ArrowLeft,
   CheckCircle2,
   Globe,
@@ -127,6 +129,120 @@ export const getPriceForCountry = (countryCode: string) => {
   }
 };
 
+const faqs = [
+  {
+    q: "C'est quoi MZ+ ?",
+    a: (
+      <p className="text-gray-300 leading-relaxed text-xs sm:text-sm">
+        MZ+ est un système conçu pour vous permettre de générer des revenus en ligne afin de vous rapprocher de votre liberté financière. Grâce à nos formations, à notre accompagnement et aux différents moyens de génération de revenus que nous mettons à votre disposition, vous bénéficiez des ressources et des stratégies nécessaires pour développer progressivement des revenus sur Internet.
+      </p>
+    )
+  },
+  {
+    q: "Quels sont les moyens de génération de revenus avec MZ+ ?",
+    a: (
+      <div className="space-y-4 text-gray-300 leading-relaxed text-xs sm:text-sm">
+        <p>Chez MZ+, plusieurs opportunités de revenus sont mises à votre disposition, notamment :</p>
+        
+        <div className="space-y-1">
+          <h4 className="font-bold text-white flex items-center gap-1.5 text-xs sm:text-sm">
+            <span>💼</span> L'affiliation (principal moyen de revenus)
+          </h4>
+          <p className="text-gray-400 pl-5 text-xs sm:text-sm">
+            Vous recommandez des produits digitaux déjà conçus et percevez une commission à chaque vente réalisée grâce à votre lien d'affiliation.
+          </p>
+          <p className="text-gray-400 pl-5 mt-1 font-light italic text-xs sm:text-sm">
+            Vous n'avez <span className="text-white font-semibold">pas besoin de créer un produit</span>, de gérer le service client ou de développer une offre : tout est déjà prêt à l'emploi. Votre rôle consiste simplement à promouvoir les produits en appliquant les stratégies enseignées dans les formations.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <h4 className="font-bold text-white flex items-center gap-1.5 text-xs sm:text-sm">
+            <span>💰</span> Le programme de rémunération MZ+
+          </h4>
+          <p className="text-gray-400 pl-5 text-xs sm:text-sm">
+            Les membres éligibles peuvent recevoir une rémunération versée chaque fin de mois. Le montant dépend de leur activité sur la plateforme ainsi que du respect des critères d'éligibilité du programme.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <h4 className="font-bold text-white flex items-center gap-1.5 text-xs sm:text-sm">
+            <span>🏆</span> Les challenges et conférences
+          </h4>
+          <p className="text-gray-400 pl-5 text-xs sm:text-sm">
+            MZ+ organise également des challenges et des conférences qui permettent, selon les cas, de remporter des récompenses et de générer des revenus supplémentaires.
+          </p>
+        </div>
+      </div>
+    )
+  },
+  {
+    q: "❓ Et si je ne connais rien ? Je n'ai aucune compétence.",
+    a: (
+      <div className="space-y-3 text-gray-300 leading-relaxed text-xs sm:text-sm">
+        <p className="font-bold text-white flex items-center gap-1.5 text-xs sm:text-sm">
+          <span>✅</span> Aucun problème ! <span className="font-normal text-gray-300">Vous n'avez besoin d'aucune compétence particulière pour commencer.</span>
+        </p>
+        <p>
+          <span>🎓</span> Chez MZ+, nous vous formons depuis les bases et vous accompagnons étape par étape afin de vous permettre de progresser dans les meilleures conditions. Notre objectif est de vous guider jusqu'à l'obtention de vos premiers résultats.
+        </p>
+        <p>
+          <span>🚀</span> Même si vous partez de zéro et n'avez aucune expérience dans le domaine, vous pouvez tout à fait réussir.
+        </p>
+        <p className="text-gray-400 italic text-xs sm:text-sm">
+          <span>💬</span> D'ailleurs, c'est le cas de la grande majorité de nos membres, qui ont commencé sans connaissances particulières avant d'obtenir leurs premiers résultats grâce à la formation, aux stratégies et à l'accompagnement proposés par MZ+.
+        </p>
+      </div>
+    )
+  },
+  {
+    q: "❓ Comment vais-je recevoir mon argent ?",
+    a: (
+      <div className="space-y-2.5 text-gray-300 leading-relaxed text-xs sm:text-sm">
+        <p className="flex items-center gap-1.5 text-xs sm:text-sm">
+          <span>💸</span> Vous recevez vos gains directement sur votre compte Mobile Money, en toute simplicité.
+        </p>
+        <p className="flex items-center gap-1.5 text-xs sm:text-sm">
+          <span>📱</span> Vous n'avez pas besoin d'une carte bancaire, ni d'un compte PayPal pour recevoir vos paiements.
+        </p>
+        <p className="text-gray-400 text-xs sm:text-sm">
+          <span>🔒</span> Les versements sont effectués de manière sécurisée via les principaux moyens de paiement mobile, tels que <span className="text-white font-semibold">MTN Mobile Money, Orange Money, Wave, M-Pesa, Airtel Money</span>, ainsi que d'autres services de Mobile Money disponibles selon votre pays.
+        </p>
+      </div>
+    )
+  },
+  {
+    q: "❓ Pourquoi l'inscription est-elle payante ?",
+    a: (
+      <div className="space-y-3.5 text-gray-300 leading-relaxed text-xs sm:text-sm">
+        <p className="font-bold text-white text-xs sm:text-sm">
+          <span>💎</span> Les frais d'inscription sont demandés parce qu'ils nous permettent de vous offrir <span className="text-[#D4AF37]">bien plus qu'un simple accès à une plateforme</span>.
+        </p>
+        <ul className="space-y-2 text-gray-400 pl-1 text-xs sm:text-sm">
+          <li className="flex items-start gap-2 text-xs sm:text-sm">
+            <span className="text-white">🎓</span>
+            <span>Ils financent des formations complètes, régulièrement mises à jour, afin de vous transmettre les compétences nécessaires pour atteindre vos objectifs.</span>
+          </li>
+          <li className="flex items-start gap-2 text-xs sm:text-sm">
+            <span className="text-white">👨‍🏫</span>
+            <span>Ils permettent également de mettre à votre disposition un accompagnement personnalisé avec des coachs qui vous guident étape par étape tout au long de votre parcours.</span>
+          </li>
+          <li className="flex items-start gap-2 text-xs sm:text-sm">
+            <span className="text-white">🖥️</span>
+            <span>Une partie de ces frais est aussi consacrée au développement, à la maintenance et à l'optimisation de la plateforme, afin de vous garantir une expérience fluide, stable et de qualité.</span>
+          </li>
+        </ul>
+        <p>
+          <span>🚀</span> Notre objectif est de vous offrir un environnement sérieux, des outils performants et un accompagnement complet pour maximiser vos chances de réussite.
+        </p>
+        <p className="font-semibold text-[#D4AF37] bg-amber-500/5 py-2 px-3 rounded-xl border border-amber-500/10 text-center text-xs sm:text-sm">
+          <span>💰</span> Ce n'est donc pas simplement un coût : c'est un investissement dans vos compétences, votre évolution et votre avenir financier.
+        </p>
+      </div>
+    )
+  }
+];
+
 interface SalesPageProps {
   onJoinClick: (priceInfo: { amount: string; currency: string }) => void;
   onBackClick: () => void;
@@ -140,40 +256,8 @@ export const SalesPage: React.FC<SalesPageProps> = ({
   selectedCountry,
   onCountrySelect,
 }) => {
-  const [detectedCountryCode, setDetectedCountryCode] = useState<string>("");
-  const [isDetecting, setIsDetecting] = useState<boolean>(true);
   const [showCountrySelector, setShowCountrySelector] = useState<boolean>(false);
-
-  // Auto-detect user's country using free geolocation API
-  useEffect(() => {
-    const detectLocation = async () => {
-      try {
-        setIsDetecting(true);
-        const response = await fetch("https://freeipapi.com/api/json");
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.countryCode) {
-            const code = data.countryCode.toUpperCase();
-            setDetectedCountryCode(code);
-            
-            const matchedCountry = COUNTRIES.find((c) => c.code === code);
-            if (matchedCountry) {
-              onCountrySelect(matchedCountry);
-            } else if (code === "FR" || code === "BE" || code === "LU" || code === "DE") {
-              const euroCountry = COUNTRIES.find((c) => c.code === "FR");
-              if (euroCountry) onCountrySelect(euroCountry);
-            }
-          }
-        }
-      } catch (error) {
-        console.warn("Unable to fetch automatic geolocation, fallback to state country:", error);
-      } finally {
-        setIsDetecting(false);
-      }
-    };
-
-    detectLocation();
-  }, [onCountrySelect]);
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   const priceInfo = getPriceForCountry(selectedCountry.code);
 
@@ -437,7 +521,7 @@ export const SalesPage: React.FC<SalesPageProps> = ({
                     <p className="text-xs font-black text-white">Aminata D.</p>
                     <span className="text-xs">🇨🇮</span>
                   </div>
-                  <p className="text-[9px] text-amber-300/80 font-bold">Abidjan · Membre VIP depuis 3 mois</p>
+                  <p className="text-[9px] text-amber-300/80 font-bold">Abidjan · Membre VIP Actif</p>
                 </div>
               </div>
 
@@ -446,7 +530,7 @@ export const SalesPage: React.FC<SalesPageProps> = ({
                   <span key={i} className="text-xs text-yellow-400">★</span>
                 ))}
                 <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded-md ml-2 font-black">
-                  +340 000 FCFA 💸
+                  Membre Vérifié ✅
                 </span>
               </div>
 
@@ -482,7 +566,7 @@ export const SalesPage: React.FC<SalesPageProps> = ({
                   <span key={i} className="text-xs text-yellow-400">★</span>
                 ))}
                 <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded-md ml-2 font-black">
-                  +520 000 FCFA 🚀
+                  VIP Élite ⭐
                 </span>
               </div>
 
@@ -518,7 +602,7 @@ export const SalesPage: React.FC<SalesPageProps> = ({
                   <span key={i} className="text-xs text-yellow-400">★</span>
                 ))}
                 <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded-md ml-2 font-black">
-                  +1 450 MAD 💰
+                  Succès Validé ✨
                 </span>
               </div>
 
@@ -529,56 +613,67 @@ export const SalesPage: React.FC<SalesPageProps> = ({
           </div>
         </section>
 
-        {/* Dynamic Pricing Box with playful accents */}
+        {/* High-Converting CTA Box in place of old country detection */}
         <section className="mb-10 max-w-xl mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-b from-zinc-900 to-black border-2 border-orange-500/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden text-center"
+            className="bg-gradient-to-b from-zinc-900 via-zinc-950 to-black border-2 border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-center"
           >
-            {/* Dynamic visual sparkles */}
-            <div className="absolute top-2 right-2 animate-pulse text-lg">👑</div>
-            <div className="absolute bottom-2 left-2 animate-bounce text-lg">💰</div>
+            {/* Visual sparkles */}
+            <div className="absolute top-3 right-3 animate-pulse text-lg">👑</div>
+            <div className="absolute bottom-3 left-3 animate-bounce text-lg">✨</div>
 
-            <div className="flex items-center justify-center gap-1.5 text-xs text-amber-300 mb-3">
-              <Globe className="w-4 h-4 text-amber-400 animate-spin" />
-              <span className="font-extrabold uppercase tracking-widest text-[10px]">
-                {isDetecting ? "Recherche de ton pays..." : "📍 Géolocalisation Réussie !"}
-              </span>
-            </div>
+            <h3 className="text-lg sm:text-xl font-black text-white font-display mb-2 uppercase tracking-wide">
+              🌟 RÉSERVE TA PLACE DANS LE SYSTÈME 🌟
+            </h3>
+            
+            <p className="text-xs text-gray-400 max-w-sm mx-auto mb-5">
+              Accédez instantanément au club privé, aux formations complètes, aux outils automatisés et à l'accompagnement VIP.
+            </p>
 
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-4 py-2.5 rounded-2xl mb-4 shadow-inner">
-              <span className="text-2xl leading-none">{selectedCountry.flag}</span>
-              <div className="text-left">
-                <p className="text-[9px] text-amber-300/70 font-black uppercase tracking-widest">Zone de paiement détectée</p>
-                <p className="text-sm font-black text-white">{selectedCountry.name}</p>
+            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 mb-6 max-w-xs mx-auto">
+              <p className="text-[10px] text-amber-400 uppercase tracking-widest font-black mb-1">
+                Tarif Exceptionnel - Accès à Vie
+              </p>
+              <div className="flex items-center justify-center gap-2.5">
+                <span className="text-xs text-gray-500 line-through font-bold">
+                  {selectedCountry.code === "FR" || selectedCountry.code === "EU" ? "99 €" : `${selectedCountry.code === "CD" ? "250 000" : selectedCountry.code === "GN" ? "750 000" : "65 000"} ${priceInfo.currency}`}
+                </span>
+                <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300">
+                  {priceInfo.amount} {priceInfo.currency}
+                </span>
               </div>
-            </div>
-
-            <div className="mb-4">
-              <p className="text-xs text-gray-300 font-medium">
-                Tarif ultra réduit exceptionnel réservé pour toi :
-              </p>
-              <p className="text-4xl font-black tracking-tight text-white mt-1.5 font-display flex items-center justify-center gap-2">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-300 text-5xl font-black">
-                  {priceInfo.amount}
-                </span>{" "}
-                <span className="text-xl text-yellow-300 font-extrabold">{priceInfo.currency}</span>
-              </p>
-              <p className="text-[10px] text-emerald-400 font-extrabold mt-1.5 flex items-center justify-center gap-1 bg-emerald-500/10 border border-emerald-500/20 py-1 px-3 rounded-full w-fit mx-auto">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                🔥 Réduction Spéciale de 85% activée aujourd'hui !
+              <p className="text-[9px] text-emerald-400 font-bold mt-1">
+                ✅ Économie immédiate de plus de 85%
               </p>
             </div>
 
-            {/* Quick manual country switch button */}
-            <button
-              onClick={() => setShowCountrySelector(!showCountrySelector)}
-              className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors underline font-bold tracking-widest uppercase cursor-pointer"
+            <motion.button
+              onClick={() => onJoinClick(priceInfo)}
+              id="btn_pricing_box_cta"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="relative w-full py-4.5 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 text-black font-black text-sm rounded-2xl shadow-[0_12px_25px_rgba(242,125,38,0.3)] cursor-pointer hover:shadow-[0_15px_30px_rgba(242,125,38,0.5)] transition-all duration-300 flex items-center justify-center gap-2 font-display uppercase tracking-wider"
             >
-              ⚙️ Ce n'est pas ton pays ? Clique ici pour modifier
-            </button>
+              <Sparkles className="w-4 h-4 text-black fill-black animate-pulse animate-spin" />
+              <span>Rejoindre le Système des Millionnaires</span>
+              <ChevronRight className="w-4 h-4 text-black stroke-[3]" />
+            </motion.button>
+
+            <div className="mt-5 flex items-center justify-center gap-2">
+              <span className="text-sm">{selectedCountry.flag}</span>
+              <p className="text-xs text-gray-400">
+                Région sélectionnée : <span className="font-bold text-white">{selectedCountry.name}</span>
+              </p>
+              <button
+                onClick={() => setShowCountrySelector(!showCountrySelector)}
+                className="text-[10px] text-amber-400 hover:text-amber-300 transition-colors underline font-bold tracking-widest uppercase ml-1 cursor-pointer"
+              >
+                (Modifier)
+              </button>
+            </div>
 
             {/* Picker list with flags */}
             <AnimatePresence>
@@ -590,7 +685,7 @@ export const SalesPage: React.FC<SalesPageProps> = ({
                   className="mt-4 bg-zinc-950 border border-orange-500/20 rounded-2xl max-h-56 overflow-y-auto p-2"
                 >
                   <p className="text-[9px] uppercase font-black tracking-widest text-amber-400 py-1.5 border-b border-white/5 mb-2 text-center">
-                    Sélectionne ta région de paiement 🗺️
+                    Sélectionnez votre pays 🗺️
                   </p>
                   <div className="grid grid-cols-2 gap-1.5">
                     {COUNTRIES.map((country) => (
@@ -615,6 +710,55 @@ export const SalesPage: React.FC<SalesPageProps> = ({
               )}
             </AnimatePresence>
           </motion.div>
+        </section>
+
+        {/* Elegant Accordion FAQ Section on the Sales Page */}
+        <section className="max-w-xl mx-auto px-4 py-8 relative z-30 mb-8">
+          <div className="text-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-black text-white font-display mb-1.5">
+              Questions Fréquentes
+            </h2>
+            <p className="text-[11px] sm:text-xs text-gray-400">
+              Tout ce que vous devez savoir pour prendre votre décision dès aujourd'hui.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq, index) => {
+              const isOpen = activeFaq === index;
+              return (
+                <div 
+                  key={index} 
+                  className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300"
+                >
+                  <button
+                    onClick={() => setActiveFaq(isOpen ? null : index)}
+                    className="w-full py-4 px-5 flex justify-between items-center text-left text-xs sm:text-sm font-bold text-gray-200 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <span className="pr-4">{faq.q}</span>
+                    <ChevronDown 
+                      className={`w-3.5 h-3.5 text-[#D4AF37] transition-transform duration-300 flex-shrink-0 ${isOpen ? "rotate-180" : ""}`} 
+                    />
+                  </button>
+                  
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        <div className="p-5 pt-0 text-xs text-gray-400 leading-relaxed border-t border-white/[0.03]">
+                          {faq.a}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         {/* Emotion Trust Counters */}
