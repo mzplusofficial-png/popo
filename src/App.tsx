@@ -148,25 +148,20 @@ export default function App() {
   const [toastVisible, setToastVisible] = useState(false);
 
   // Fake remaining seats (highly effective CRO trigger)
-  const [remainingSeats, setRemainingSeats] = useState(7);
+  const [remainingSeats] = useState(8);
   const [activeViewers, setActiveViewers] = useState(142);
 
   // Countdown Timer states for CTA
   const [secondsLeft, setSecondsLeft] = useState(30);
   const [timerStarted, setTimerStarted] = useState(false);
 
-  // Randomize viewers and seats occasionally
+  // Randomize viewers occasionally
   useEffect(() => {
-    const seatInterval = setInterval(() => {
-      setRemainingSeats((prev) => (prev > 3 ? prev - 1 : prev));
-    }, 45000);
-
     const viewerInterval = setInterval(() => {
       setActiveViewers((prev) => prev + Math.floor(Math.random() * 9) - 4);
     }, 5000);
 
     return () => {
-      clearInterval(seatInterval);
       clearInterval(viewerInterval);
     };
   }, []);
@@ -450,7 +445,7 @@ export default function App() {
       <div className="min-h-screen bg-[#050505] text-gray-100 selection:bg-[#D4AF37] selection:text-black font-sans relative">
         <SalesPage
           onJoinClick={() => {
-            window.location.href = "https://mzplus.mychariow.shop/prd_4e7cof60/checkout";
+            window.location.href = "https://mzplus.mychariow.shop/prd_knd1e076";
           }}
           onBackClick={() => {
             setView('landing');
@@ -471,12 +466,24 @@ export default function App() {
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#F27D26] opacity-10 blur-[120px] rounded-full pointer-events-none ambient-glow-orange" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-[#1E3A8A] opacity-10 blur-[100px] rounded-full pointer-events-none ambient-glow-blue" />
 
-      {/* Top Luxury Exclusivity Ribbon */}
-      <div className="w-full bg-gradient-to-r from-amber-950/40 via-black to-amber-950/40 border-b border-white/5 backdrop-blur-md py-2.5 px-4 text-center text-[10px] sm:text-xs tracking-wider uppercase font-semibold flex justify-center items-center gap-2 relative z-50 text-white/70">
-        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse"></span>
-        <span>Accès VIP Restreint :</span> 
-        <span className="text-[#D4AF37] font-bold">{remainingSeats} places disponibles aujourd'hui</span>
-        <span className="hidden md:inline text-white/40 font-normal">| {activeViewers} personnes analysent cette opportunité</span>
+      {/* Sticky Attention-Grabbing Urgent Banner */}
+      <div className="sticky top-0 z-50 w-full bg-gradient-to-r from-red-700 via-amber-600 to-red-700 border-b border-yellow-400/30 text-white py-3 px-4 shadow-[0_4px_25px_rgba(239,68,68,0.3)] backdrop-blur-md">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-center text-xs md:text-sm">
+          <div className="flex items-center gap-2 font-black tracking-wider uppercase text-yellow-300 animate-pulse">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+            </span>
+            <span>🚨 ALERTE CRUCIALE :</span>
+          </div>
+          <p className="font-extrabold tracking-wide uppercase text-white">
+            PLUS QUE <span className="text-yellow-300 text-sm md:text-base font-black px-2 py-0.5 bg-black/50 rounded-lg border border-yellow-400/40 animate-bounce inline-block shadow-inner mx-1">8 PLACES DISPONIBLES</span> POUR AUJOURD'HUI !
+          </p>
+          <div className="flex items-center gap-2 bg-black/30 border border-white/10 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold text-yellow-400 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-ping" />
+            <span>Fermeture imminente de l'accès VIP</span>
+          </div>
+        </div>
       </div>
 
       {/* Sleek Premium Navigation */}
@@ -699,57 +706,40 @@ export default function App() {
           {/* Dynamic CTA Button (Matches screenshot exactly: capsules shape, sparkles left, chevron right) */}
           <div 
             ref={ctaSectionRef}
-            className="w-full max-w-[310px] sm:max-w-[340px] pt-1 relative z-20 text-center animate-fade-in"
+            className="w-full max-w-[310px] sm:max-w-[340px] pt-6 relative z-20 text-center animate-fade-in"
           >
-            {/* Explanatory text to let user know they must watch the video to unlock access */}
-            {(!timerStarted || secondsLeft > 0) && (
-              <div className="mb-2.5 text-[10px] font-semibold tracking-wider text-amber-500/80 uppercase flex items-center justify-center gap-1 bg-amber-500/5 py-1 px-3 rounded-full border border-amber-500/10">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                Regardez la vidéo pour débloquer l'accès aux inscriptions
-              </div>
-            )}
-
             <div className="w-full relative">
-              {!timerStarted ? (
-                <button
-                  disabled
-                  className="w-full py-4.5 bg-zinc-900/60 border border-white/5 text-gray-500 font-bold text-[10px] sm:text-xs rounded-full flex items-center justify-center gap-2 cursor-not-allowed transition-all duration-300 font-display"
-                >
-                  <ShieldCheck className="w-4 h-4 text-gray-600" />
-                  <span className="tracking-wider uppercase">🔒 Regarder la vidéo pour débloquer l'accès</span>
-                </button>
-              ) : secondsLeft > 0 ? (
-                <button
-                  disabled
-                  className="relative w-full overflow-hidden py-4.5 bg-zinc-900 border border-white/10 text-gray-400 font-bold text-xs sm:text-sm rounded-full flex items-center justify-center gap-2 cursor-not-allowed font-display"
-                >
-                  {/* Visual loading bar */}
-                  <div 
-                    className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#D4AF37]/10 to-[#F27D26]/20 transition-all duration-1000 ease-linear"
-                    style={{ width: `${((30 - secondsLeft) / 30) * 100}%` }}
-                  />
-                  <Clock className="w-4 h-4 text-[#D4AF37] animate-spin relative z-10" />
-                  <span className="tracking-wider uppercase relative z-10 text-[10px] sm:text-xs">
-                    Déblocage de l'accès dans {secondsLeft}s...
-                  </span>
-                </button>
-              ) : (
-                <motion.button
-                  onClick={() => {
-                    setView("sales");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  id="btn_rejoindre_mz_cta"
-                  initial={{ scale: 0.95 }}
-                  animate={{ scale: [1, 1.02, 1] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                  className="group relative w-full py-4.5 bg-gradient-to-r from-[#D4AF37] to-[#F27D26] hover:scale-[1.02] active:scale-[0.98] text-black font-extrabold text-xs sm:text-sm rounded-full shadow-[0_12px_35px_rgba(242,125,38,0.4)] cursor-pointer flex items-center justify-between px-6 transition-all duration-300 font-display"
-                >
-                  <Sparkles className="w-4 h-4 text-black fill-black flex-shrink-0" />
-                  <span className="tracking-wider uppercase font-black text-center flex-1">Je veux rejoindre MZ+</span>
-                  <ChevronRight className="w-4.5 h-4.5 text-black stroke-[3.5] group-hover:translate-x-1 transition-transform flex-shrink-0" />
-                </motion.button>
-              )}
+              {/* Animated pointing hand indicator pointing at the button */}
+              <div className="absolute -top-7 right-6 z-30 pointer-events-none animate-bounce flex items-center gap-1 bg-amber-400 text-black text-[9px] font-black uppercase tracking-wider py-1 px-2.5 rounded-full shadow-[0_5px_15px_rgba(212,175,55,0.4)] border border-white/20">
+                <span>Cliquez ici</span>
+                <span className="text-sm animate-pulse">👇</span>
+              </div>
+
+              <motion.button
+                onClick={() => {
+                  setView("sales");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                id="btn_rejoindre_mz_cta"
+                initial={{ scale: 0.95 }}
+                animate={{ 
+                  scale: [1, 1.05, 0.95, 1.03, 1],
+                  y: [0, -4, 0, -2, 0]
+                }}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 2.5, 
+                  ease: "easeInOut" 
+                }}
+                className="group relative w-full py-4.5 bg-gradient-to-r from-[#D4AF37] to-[#F27D26] hover:scale-[1.05] active:scale-[0.98] text-black font-extrabold text-xs sm:text-sm rounded-full shadow-[0_12px_35px_rgba(242,125,38,0.5)] cursor-pointer flex items-center justify-between px-6 transition-all duration-300 font-display border-2 border-yellow-300 overflow-hidden"
+              >
+                {/* Glossy sheen reflection */}
+                <span className="absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 shimmer-effect pointer-events-none" />
+                
+                <Sparkles className="w-4 h-4 text-black fill-black flex-shrink-0 animate-spin" />
+                <span className="tracking-wider uppercase font-black text-center flex-1">Je veux rejoindre MZ+ 👑</span>
+                <ChevronRight className="w-4.5 h-4.5 text-black stroke-[3.5] group-hover:translate-x-1.5 transition-transform flex-shrink-0" />
+              </motion.button>
             </div>
           </div>
 

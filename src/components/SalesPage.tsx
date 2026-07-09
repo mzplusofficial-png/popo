@@ -349,6 +349,20 @@ export const SalesPage: React.FC<SalesPageProps> = ({
       {/* Main content body */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 relative z-30 pt-2">
         
+        {/* Extreme Urgency Seats Left Alert */}
+        <div className="mb-6 bg-gradient-to-r from-red-950/80 via-[#991B1B]/80 to-red-950/80 border-2 border-red-500/30 rounded-2xl p-4 text-center relative overflow-hidden shadow-[0_10px_30px_rgba(239,68,68,0.15)] backdrop-blur-md animate-pulse">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12" />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 relative z-10">
+            <div className="flex items-center gap-1.5 font-black text-red-400 text-xs sm:text-sm">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block" />
+              <span>⚠️ ALERTE PÉNURIE VIP :</span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-200 font-extrabold tracking-wide uppercase">
+              Plus que <span className="text-yellow-400 font-black px-1.5 py-0.5 bg-black/40 rounded border border-yellow-400/20">8 places disponibles</span> aujourd'hui !
+            </p>
+          </div>
+        </div>
+
         {/* Main Emotional Hook Title with Emojis */}
         <section className="text-center mb-8 relative">
           <div className="inline-flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 py-1 mb-4">
@@ -443,44 +457,56 @@ export const SalesPage: React.FC<SalesPageProps> = ({
 
         {/* Dynamic & Hyper Exciting Middle Call To Action */}
         <div className="my-8 text-center max-w-md mx-auto px-4 relative z-40">
-          <motion.button
-            onClick={() => onJoinClick(priceInfo)}
-            id="btn_sales_page_mid_cta"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            animate={{
-              scale: [1, 1.05, 0.98, 1.04, 1],
-              rotate: [0, 1.5, -1.5, 1, 0]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 2,
-              ease: "easeInOut"
-            }}
-            className="relative w-full py-5 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 text-black font-black text-sm rounded-2xl shadow-[0_15px_35px_rgba(242,125,38,0.4)] cursor-pointer transition-all duration-300 flex items-center justify-between px-6 font-display overflow-hidden group border-2 border-yellow-300"
-          >
-            {/* Sheen reflection effect */}
-            <span className="absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 shimmer-effect pointer-events-none" />
-            <span className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-            
-            <div className="flex items-center gap-2 relative z-10">
-              <span className="text-lg">🔥</span>
-              <span className="tracking-widest uppercase font-black text-xs sm:text-sm">
-                Je m'inscris maintenant !
-              </span>
+          <div className="relative inline-block w-full">
+            {/* Animated pointing hand indicator pointing at the button */}
+            <div className="absolute -top-7 right-6 z-30 pointer-events-none animate-bounce flex items-center gap-1 bg-amber-400 text-black text-[9px] font-black uppercase tracking-wider py-1 px-2.5 rounded-full shadow-[0_5px_15px_rgba(212,175,55,0.4)] border border-white/20">
+              <span>Cliquez ici</span>
+              <span className="text-sm animate-pulse">👇</span>
             </div>
 
-            <div className="flex items-center gap-2 relative z-10 font-black">
-              <span className="text-[10px] font-bold opacity-60 line-through mr-1 text-black">
-                {selectedCountry.code === "FR" || selectedCountry.code === "EU" ? "99 €" : `${selectedCountry.code === "CD" ? "250 000" : selectedCountry.code === "GN" ? "750 000" : "65 000"} ${priceInfo.currency}`}
-              </span>
-              <span className="bg-black text-yellow-300 text-xs px-3.5 py-1.5 rounded-xl border border-white/15 font-black shadow-md">
-                {priceInfo.amount} {priceInfo.currency}
-              </span>
-              <ChevronRight className="w-4 h-4 text-black stroke-[3.5] group-hover:translate-x-1.5 transition-transform" />
-            </div>
-          </motion.button>
+            <motion.button
+              onClick={() => onJoinClick(priceInfo)}
+              id="btn_sales_page_mid_cta"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              animate={{
+                scale: [1, 1.06, 0.96, 1.04, 1],
+                rotate: [0, 1.2, -1.2, 0.8, 0],
+                boxShadow: [
+                  "0 15px 35px rgba(242,125,38,0.4)",
+                  "0 15px 45px rgba(242,125,38,0.7)",
+                  "0 15px 35px rgba(242,125,38,0.4)"
+                ]
+              }}
+              transition={{
+                duration: 1.8,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="relative w-full py-5 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 text-black font-black text-sm rounded-2xl shadow-[0_15px_35px_rgba(242,125,38,0.4)] cursor-pointer transition-all duration-300 flex items-center justify-between px-6 font-display overflow-hidden group border-2 border-yellow-300"
+            >
+              {/* Sheen reflection effect */}
+              <span className="absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 shimmer-effect pointer-events-none" />
+              <span className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+              
+              <div className="flex items-center gap-2 relative z-10">
+                <span className="text-lg">🔥</span>
+                <span className="tracking-widest uppercase font-black text-xs sm:text-sm">
+                  Je m'inscris maintenant !
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 relative z-10 font-black">
+                <span className="text-[10px] font-bold opacity-60 line-through mr-1 text-black">
+                  {selectedCountry.code === "FR" || selectedCountry.code === "EU" ? "99 €" : `${selectedCountry.code === "CD" ? "250 000" : selectedCountry.code === "GN" ? "750 000" : "65 000"} ${priceInfo.currency}`}
+                </span>
+                <span className="bg-black text-yellow-300 text-xs px-3.5 py-1.5 rounded-xl border border-white/15 font-black shadow-md">
+                  {priceInfo.amount} {priceInfo.currency}
+                </span>
+                <ChevronRight className="w-4 h-4 text-black stroke-[3.5] group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </motion.button>
+          </div>
           
           <p className="text-[10px] text-amber-400/80 mt-2.5 font-bold flex items-center justify-center gap-1 animate-pulse">
             <span>🔒</span> INSCRIPTION ULTRA SÉCURISÉE · PLACES TRÈS LIMITÉES ⏳
@@ -629,6 +655,12 @@ export const SalesPage: React.FC<SalesPageProps> = ({
               🌟 RÉSERVE TA PLACE DANS LE SYSTÈME 🌟
             </h3>
             
+            {/* Urgent Counter Indicator for exact matching */}
+            <div className="mb-3.5 inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black text-red-400 uppercase tracking-wider animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+              <span>Dépêchez-vous : Plus que 8 places disponibles !</span>
+            </div>
+            
             <p className="text-xs text-gray-400 max-w-sm mx-auto mb-5">
               Accédez instantanément au club privé, aux formations complètes, aux outils automatisés et à l'accompagnement VIP.
             </p>
@@ -650,17 +682,39 @@ export const SalesPage: React.FC<SalesPageProps> = ({
               </p>
             </div>
 
-            <motion.button
-              onClick={() => onJoinClick(priceInfo)}
-              id="btn_pricing_box_cta"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="relative w-full py-4.5 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 text-black font-black text-sm rounded-2xl shadow-[0_12px_25px_rgba(242,125,38,0.3)] cursor-pointer hover:shadow-[0_15px_30px_rgba(242,125,38,0.5)] transition-all duration-300 flex items-center justify-center gap-2 font-display uppercase tracking-wider"
-            >
-              <Sparkles className="w-4 h-4 text-black fill-black animate-pulse animate-spin" />
-              <span>Rejoindre le Système des Millionnaires</span>
-              <ChevronRight className="w-4 h-4 text-black stroke-[3]" />
-            </motion.button>
+            <div className="relative inline-block w-full">
+              {/* Animated pointing hand indicator pointing at the button */}
+              <div className="absolute -top-7 right-6 z-30 pointer-events-none animate-bounce flex items-center gap-1 bg-amber-400 text-black text-[9px] font-black uppercase tracking-wider py-1 px-2.5 rounded-full shadow-[0_5px_15px_rgba(212,175,55,0.4)] border border-white/20">
+                <span>Cliquez ici</span>
+                <span className="text-sm animate-pulse">👇</span>
+              </div>
+
+              <motion.button
+                onClick={() => onJoinClick(priceInfo)}
+                id="btn_pricing_box_cta"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  scale: [1, 1.06, 0.96, 1.04, 1],
+                  rotate: [0, -1.2, 1.2, -0.8, 0],
+                  boxShadow: [
+                    "0 12px 25px rgba(242,125,38,0.3)",
+                    "0 12px 40px rgba(242,125,38,0.6)",
+                    "0 12px 25px rgba(242,125,38,0.3)"
+                  ]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="relative w-full py-4.5 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 text-black font-black text-sm rounded-2xl shadow-[0_12px_25px_rgba(242,125,38,0.3)] cursor-pointer hover:shadow-[0_15px_30px_rgba(242,125,38,0.5)] transition-all duration-300 flex items-center justify-center gap-2 font-display uppercase tracking-wider border-2 border-yellow-300"
+              >
+                <Sparkles className="w-4 h-4 text-black fill-black animate-pulse animate-spin" />
+                <span>Rejoindre le Système des Millionnaires</span>
+                <ChevronRight className="w-4 h-4 text-black stroke-[3]" />
+              </motion.button>
+            </div>
 
             <div className="mt-5 flex items-center justify-center gap-2">
               <span className="text-sm">{selectedCountry.flag}</span>
@@ -792,46 +846,58 @@ export const SalesPage: React.FC<SalesPageProps> = ({
           </div>
 
           {/* Golden animated bouncy CTA */}
-          <motion.button
-            onClick={() => onJoinClick(priceInfo)}
-            id="btn_sales_page_sticky_cta"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            animate={{
-              scale: [1, 1.05, 0.98, 1.04, 1],
-              rotate: [0, 1.2, -1.2, 0.8, 0]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 2,
-              ease: "easeInOut"
-            }}
-            className="relative w-full py-5 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 text-black font-black text-sm rounded-2xl shadow-[0_15px_40px_rgba(242,125,38,0.4)] cursor-pointer transition-all duration-300 flex items-center justify-between px-6 font-display overflow-hidden group border-2 border-yellow-300"
-          >
-            {/* Glossy sheen */}
-            <span className="absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 shimmer-effect pointer-events-none" />
-            
-            <div className="flex items-center gap-2 relative z-10">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-80"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-black"></span>
-              </span>
-              <span className="tracking-widest uppercase font-black text-xs sm:text-sm">
-                Je m'inscris maintenant ! 🚀
-              </span>
+          <div className="relative inline-block w-full">
+            {/* Animated pointing hand indicator pointing at the button */}
+            <div className="absolute -top-7 right-6 z-30 pointer-events-none animate-bounce flex items-center gap-1 bg-amber-400 text-black text-[9px] font-black uppercase tracking-wider py-1 px-2.5 rounded-full shadow-[0_5px_15px_rgba(212,175,55,0.4)] border border-white/20">
+              <span>Cliquez ici</span>
+              <span className="text-sm animate-pulse">👇</span>
             </div>
 
-            <div className="flex items-center gap-2.5 relative z-10 font-black">
-              <span className="text-[10px] font-bold opacity-60 line-through mr-1 text-black">
-                {selectedCountry.code === "FR" || selectedCountry.code === "EU" ? "99 €" : `${selectedCountry.code === "CD" ? "250 000" : selectedCountry.code === "GN" ? "750 000" : "65 000"} ${priceInfo.currency}`}
-              </span>
-              <span className="bg-black text-yellow-300 text-xs px-3.5 py-1.5 rounded-xl border border-white/15 font-black shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
-                {priceInfo.amount} {priceInfo.currency}
-              </span>
-              <ChevronRight className="w-4 h-4 text-black stroke-[4] group-hover:translate-x-1.5 transition-transform" />
-            </div>
-          </motion.button>
+            <motion.button
+              onClick={() => onJoinClick(priceInfo)}
+              id="btn_sales_page_sticky_cta"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              animate={{
+                scale: [1, 1.06, 0.96, 1.04, 1],
+                rotate: [0, 1.2, -1.2, 0.8, 0],
+                boxShadow: [
+                  "0 15px 40px rgba(242,125,38,0.4)",
+                  "0 15px 50px rgba(242,125,38,0.75)",
+                  "0 15px 40px rgba(242,125,38,0.4)"
+                ]
+              }}
+              transition={{
+                duration: 1.8,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="relative w-full py-5 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 text-black font-black text-sm rounded-2xl shadow-[0_15px_40px_rgba(242,125,38,0.4)] cursor-pointer transition-all duration-300 flex items-center justify-between px-6 font-display overflow-hidden group border-2 border-yellow-300"
+            >
+              {/* Glossy sheen */}
+              <span className="absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-12 shimmer-effect pointer-events-none" />
+              
+              <div className="flex items-center gap-2 relative z-10">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-80"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-black"></span>
+                </span>
+                <span className="tracking-widest uppercase font-black text-xs sm:text-sm">
+                  Je m'inscris maintenant ! 🚀
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2.5 relative z-10 font-black">
+                <span className="text-[10px] font-bold opacity-60 line-through mr-1 text-black">
+                  {selectedCountry.code === "FR" || selectedCountry.code === "EU" ? "99 €" : `${selectedCountry.code === "CD" ? "250 000" : selectedCountry.code === "GN" ? "750 000" : "65 000"} ${priceInfo.currency}`}
+                </span>
+                <span className="bg-black text-yellow-300 text-xs px-3.5 py-1.5 rounded-xl border border-white/15 font-black shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+                  {priceInfo.amount} {priceInfo.currency}
+                </span>
+                <ChevronRight className="w-4 h-4 text-black stroke-[4] group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </motion.button>
+          </div>
         </div>
       </div>
     </motion.div>
